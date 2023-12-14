@@ -3,7 +3,9 @@ import {FilePlus2, History} from "lucide-react";
 import * as z from "zod"
 import {zodResolver} from "@hookform/resolvers/zod"
 import {useForm} from "react-hook-form"
-import {Form} from "@/components/ui/form.tsx";
+import {Form, FormControl, FormField, FormItem, FormLabel} from "@/components/ui/form.tsx";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
+import {Textarea} from "@/components/ui/textarea.tsx";
 
 const formSchema = z.object({
   username: z.string().min(2, {
@@ -18,14 +20,18 @@ const formSchema = z.object({
 })
 
 const Dall = () => {
-  const form =  useForm({
-    defaultValues:{
-      model:"dall-e-2",
-      size:"",
+  const form = useForm({
+    defaultValues: {
+      model: "dall-e-2",
+      size: "120x120",
       number: 1,
-      quality:""
+      quality: "standard"
     }
   })
+
+  const onSubmit = () => {
+    console.log("")
+  }
 
   return (
     <div className={"h-full overflow-hidden"}>
@@ -52,14 +58,70 @@ const Dall = () => {
           </TabsList>
         </div>
         <TabsContent value="generate">
-          <div className={"flex w-full space-x-4"}>
-            <div className={"w-2/3 border-2 h-80"}>
-              111
-            </div>
-            <div className={"w-1/3 bg-gray-500 h-80"}>
-              <Form>
+          <div className={"md:flex w-full md:space-x-4"}>
+            <div className={"w-full md:w-1/2 border-2 h-100"}>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)}>
+                  <FormField render={({field}) => <FormItem>
+                    <FormLabel>模型</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a verified email to display"/>
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="dall-e-2">dall-e-2</SelectItem>
+                        <SelectItem value="dall-e-3">dall-e-3</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormItem>} name={"model"}/>
 
+                  <FormField render={({field}) => <FormItem>
+                    <FormLabel>图片尺寸</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a verified email to display"/>
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="1024x1024">1024x1024</SelectItem>
+                        <SelectItem value="120x120">120x120</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormItem>} name={"size"}/>
+
+                  <FormField render={({field}) => <FormItem>
+                    <FormLabel>画质</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a verified email to display"/>
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="standard">standard</SelectItem>
+                        <SelectItem value="hd">hd</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormItem>} name={"quality"}/>
+
+                  <FormField render={({field}) => <FormItem>
+                    <FormLabel>描述词</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="生成图片的描述词"
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>} name={"description"}/>
+                </form>
               </Form>
+            </div>
+            <div className={"w-full md:w-1/2 border-2 h-100"}>
+              111
             </div>
           </div>
         </TabsContent>
