@@ -4,6 +4,8 @@ import {ChangeEvent, ElementRef, FormEvent, useEffect, useRef, useState} from "r
 import {useMessagesStore} from "@/store/useMessagesStore.ts";
 import {useWebsocket} from "@/hooks/useWebsocket.ts";
 import {useModelStore} from "@/store/useModelStore.tsx";
+import {Delete, Edit, MessageCircle} from "lucide-react";
+import {Progress} from "@/components/ui/progress.tsx";
 
 export interface Message {
   content: string
@@ -43,12 +45,25 @@ const Chat = () => {
 
   return (
     <div className={"h-full flex w-full"}>
-      <aside className={"hidden md:block w-[260px] max-w-[260px] border-2"}>
-        <div className={"flex h-14 items-center bg-white px-4 dark:bg-[#18181c]"}>
-          <div>新对话</div>
+      <aside className={"hidden md:flex w-[260px] max-w-[260px] border-2 flex-col justify-between"}>
+        <div className={"flex h-14 items-center bg-white px-4 dark:bg-[#18181c] justify-center"}>
+          <div className={"border-2 px-8 py-1 rounded-md cursor-pointer"}>+ 新对话</div>
         </div>
-        <div className={"min-h-0 flex-1 overflow-hidden overflow-y-auto px-4"}>
-          list
+        <div className={"min-h-0 flex-1 overflow-hidden overflow-y-auto px-4 py-4 "}>
+          <div className={"flex border-2 justify-between py-2 rounded-md px-2 cursor-pointer"}>
+            <div className={" flex"}>
+              <MessageCircle className={"w-4"}/>
+              <span>新对话</span>
+            </div>
+            <div className={"flex space-x-1"}>
+              <Edit className={"w-4"}/>
+              <Delete className={"w-4"}/>
+            </div>
+          </div>
+        </div>
+        <div className={"side-wallet-box border-t p-4 dark:border-t-neutral-800"}>
+          余额1800 (80%)
+          <Progress value={80} className={"border-2"}/>
         </div>
       </aside>
       <div className={"flex h-full flex-col justify-between w-full"}>
@@ -60,6 +75,14 @@ const Chat = () => {
           </div>
         </header>
         <main className={"px-4 flex-1 overflow-auto"}>
+          {messages.length === 0 && <div className={"flex justify-center items-center h-full flex-col"}>
+              <h2 className={"mb-6 rounded px-4 py-2 text-center text-3xl font-bold"}>AI聊天机器人</h2>
+              <div className={"w-full flex items-center justify-center space-x-6"}>
+                  <span>写文案</span>
+                  <span>生活质感</span>
+                  <span>职场助手</span>
+              </div>
+          </div>}
           {messages.map((message, index) => <ChatMessage key={index} {...message}/>)}
           {isLoading && <ChatMessage role={"assistant"} isLoading={isLoading}/>}
           <div ref={scrollRef}/>

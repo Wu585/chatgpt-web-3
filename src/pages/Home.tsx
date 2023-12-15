@@ -51,7 +51,7 @@ const Home = () => {
       </div>
       <div className={"w-full grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 my-4"}>
         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map(() =>
-          <div className={"border-2 m-auto w-full rounded-md bg-white p-4 dark:bg-[#18181c]"}>
+          <div className={"border-2 m-auto w-full rounded-md bg-white p-4 dark:bg-[#18181c] transition-transform transform hover:scale-105 ease-in"}>
             <div className={"flex items-start"}>
               <div
                 className={"mr-3 flex h-[80px] w-[80px] min-w-[80px] overflow-hidden rounded-md bg-[#f3f4fb] dark:bg-[#28282c]"}>
@@ -67,7 +67,7 @@ const Home = () => {
                 </div>
               </div>
             </div>
-            <div className={"mt-4 flex justify-end text-[#eb2f96] dark:text-[#ff8cc8] "}>
+            <div className={"mt-4 flex justify-end text-[#eb2f96] dark:text-[#ff8cc8]"}>
               <div className={"rounded-full border-2 px-4 cursor-pointer"}>使用</div>
             </div>
           </div>
