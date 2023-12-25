@@ -12,6 +12,7 @@ interface MessagesStore {
   isLoading: boolean
   setIsLoading: (isLoading: boolean) => void
   resetMessages: () => void
+  updateAllMessages: (messages: Message[]) => void
 }
 
 export const useMessagesStore = create<MessagesStore>((set) => ({
@@ -25,5 +26,8 @@ export const useMessagesStore = create<MessagesStore>((set) => ({
   })),
   resetMessages: () => set(() => ({
     messages: []
+  })),
+  updateAllMessages: (messages) => set(() => ({
+    messages
   }))
 }))

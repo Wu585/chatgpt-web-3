@@ -5,25 +5,59 @@ import {Form, FormControl, FormField, FormItem, FormLabel} from "@/components/ui
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
 import {Textarea} from "@/components/ui/textarea.tsx";
 import {Button} from "@/components/ui/button.tsx";
+import {useState} from "react";
+import axios from "axios";
+import {useUserStore} from "@/store/userStore.ts";
+import {useToast} from "@/components/ui/use-toast.ts";
+import {PulseLoader} from "react-spinners";
 
 const Dall = () => {
+  const {user} = useUserStore()
+  const {toast} = useToast()
   const form = useForm({
     defaultValues: {
       model: "dall-e-2",
       size: "1024x1024",
       number: 1,
-      quality: "standard"
+      quality: "standard",
+      style: "natural",
+      prompt: ""
     }
   })
 
+  const [imgSrc, setImgSrc] = useState("https://hh.feixue666.com/i/2023/12/04/656d655f79a20.jpg")
+  const [isLoading, setIsLoading] = useState(false)
+
   const onSubmit = () => {
-    console.log(form.getValues());
+    const value = form.getValues()
+    if (!value.prompt) {
+      console.log('return ')
+      return
+    }
+    setIsLoading(true)
+    axios({
+      url: "api/image/getImages",
+      method: "POST",
+      data: {
+        ...value,
+        user: user?.username
+      }
+    }).then(res => {
+      setImgSrc(res.data.msg)
+    }).catch(() => {
+      toast({
+        description: "出错啦,请重新尝试",
+        variant: "destructive"
+      })
+    }).finally(() => {
+      setIsLoading(false)
+    })
   }
 
   const modelValue = form.watch("model")
 
   return (
-    <div className={"h-full overflow-hidden p-4"}>
+    <div className={"h-full overflow-auto p-4"}>
       <header className={""}>
         <h2 className={"text-2xl font-bold text-black dark:text-white"}>DALL·E</h2>
         <p className={"mt-2 text-zinc-400"}>输入描述性文本，使用 AI 轻松生成图像</p>
@@ -55,8 +89,9 @@ const Dall = () => {
                     <FormLabel>模型</FormLabel>
                     <Select onValueChange={value => {
                       field.onChange(value)
-                      form.setValue("size","1024x1024")
-                      form.setValue("quality","standard")
+                      form.setValue("size", "1024x1024")
+                      form.setValue("quality", "standard")
+                      form.setValue("style", "natural")
                     }} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -92,6 +127,23 @@ const Dall = () => {
                   </FormItem>} name={"size"}/>
 
                   <FormField render={({field}) => <FormItem>
+                    <FormLabel>风格</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a verified email to display"/>
+                        </SelectTrigger>
+                      </FormControl>
+                      {form.getValues("model") === "dall-e-2" ? <SelectContent>
+                        <SelectItem value="natural">自然</SelectItem>
+                      </SelectContent> : <SelectContent>
+                        <SelectItem value="natural">自然</SelectItem>
+                        <SelectItem value="vivid">二次元</SelectItem>
+                      </SelectContent>}
+                    </Select>
+                  </FormItem>} name={"style"}/>
+
+                  <FormField render={({field}) => <FormItem>
                     <FormLabel>画质</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
@@ -117,18 +169,19 @@ const Dall = () => {
                         {...field}
                       />
                     </FormControl>
-                  </FormItem>} name={"description"}/>
+                  </FormItem>} name={"prompt"}/>
 
                   <Button type={"submit"} className={"w-full mt-6"}>生成图片</Button>
                 </form>
               </Form>
             </div>
-            <div className={"w-full md:w-2/3 border-2 h-100"}>
-              111
+            <div className={"w-full md:w-2/3 border-2 h-[640px] flex items-center justify-center"}>
+              {isLoading ? <PulseLoader color="#36d7b7"/> :
+                <img className={"object-fill h-full"} src={imgSrc} alt="暂无图片"/>}
             </div>
           </div>
         </TabsContent>
-        <TabsContent value="history">Change your password here.</TabsContent>
+        <TabsContent value="history"></TabsContent>
       </Tabs>
     </div>
   );

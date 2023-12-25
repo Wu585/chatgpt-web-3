@@ -1,7 +1,7 @@
 import {create} from 'zustand'
 
 interface UserStore {
-  model: "gpt-3.5-turbo" | "gpt-4-32k"
+  model: "gpt-3.5-turbo" | "gpt-4-1106-preview"
   setModel: (model: UserStore["model"]) => void
 }
 

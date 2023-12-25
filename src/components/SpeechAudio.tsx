@@ -13,11 +13,15 @@ import {useUserStore} from "@/store/userStore.ts";
 import {useToast} from "@/components/ui/use-toast.ts";
 import {useMessagesStore} from "@/store/useMessagesStore.ts";
 
-export function SpeechAudio() {
+interface SpeechAudio {
+  chatId?: string
+}
+
+export function SpeechAudio({chatId}: SpeechAudio) {
   const {setMessages, setIsLoading} = useMessagesStore()
 
   const recognition = new webkitSpeechRecognition();
-  const {ws} = useWebsocket()
+  const {ws} = useWebsocket({isAudio: true})
   const {model} = useModelStore()
   const {user} = useUserStore()
   const {toast} = useToast()
@@ -48,6 +52,7 @@ export function SpeechAudio() {
         content: transcript,
         semantics: true,
         model,
+        chatId
       }))
     };
   }

@@ -2,7 +2,6 @@ import {Input} from "@/components/ui/input.tsx";
 import {SendHorizonal} from "lucide-react";
 import {Button} from "@/components/ui/button.tsx";
 import {ChangeEvent, FC, FormEvent} from "react";
-// import {SpeechAudio} from "@/components/SpeechAudio.tsx";
 import {useModelStore} from "@/store/useModelStore.tsx";
 import {SpeechAudio} from "@/components/SpeechAudio.tsx";
 
@@ -11,12 +10,13 @@ interface FormInputProps {
   handleInputChange: (e: ChangeEvent<HTMLInputElement>) => void
   onSubmit: (e: FormEvent<HTMLFormElement>) => void
   isLoading: boolean
+  chatId?: string
 }
 
-const FormInput: FC<FormInputProps> = ({input, handleInputChange, onSubmit, isLoading}) => {
+const FormInput: FC<FormInputProps> = ({input, handleInputChange, onSubmit, isLoading,chatId}) => {
   const {setModel, model} = useModelStore()
   const onChangeModel = () => {
-    model === "gpt-3.5-turbo" ? setModel("gpt-4-32k") : setModel("gpt-3.5-turbo")
+    model === "gpt-3.5-turbo" ? setModel("gpt-4-1106-preview") : setModel("gpt-3.5-turbo")
   }
 
   return (
@@ -25,7 +25,7 @@ const FormInput: FC<FormInputProps> = ({input, handleInputChange, onSubmit, isLo
         <Button className={"bg-black text-white"} type={"button"} onClick={onChangeModel}>{
           model === "gpt-3.5-turbo" ? "切换到4.0" : "切换到3.5"
         }</Button>
-        <SpeechAudio/>
+        <SpeechAudio chatId={chatId}/>
         {/*<Mic className={"h-8 w-12 px-1 cursor-pointer"}/>*/}
         <Input value={input} onChange={handleInputChange} disabled={isLoading}
                className={"h-full placeholder:text-primary flex-1 w-full"} placeholder={"您好，想问点什么?"}/>

@@ -1,11 +1,18 @@
 import {Home, MessageSquare, Image, Pen} from "lucide-react";
 import UserAvatar from "@/components/UserAvatar.tsx";
 import ModeToggle from "@/components/mode-toggle.tsx";
-import {Link, useLocation} from "react-router-dom";
+import {useLocation, useNavigate,} from "react-router-dom";
 import {cn} from "@/lib/utils.ts";
 import Announcement from "@/components/Announcement.tsx";
+import {useChatList} from "@/hooks/useChatList.ts";
 
 const Sidebar = () => {
+  const navigate = useNavigate()
+
+  const {data: chatList} = useChatList()
+
+  const chatPath = chatList && chatList.length > 0 ? `/chat/${chatList[0].parentMessageId}` : '/chat'
+
   const routesMap = [
     {
       path: "/home",
@@ -30,22 +37,34 @@ const Sidebar = () => {
   ]
 
   const {pathname} = useLocation()
+  const url = '/' + pathname.split('/')[1]
+
+  const onClickLink = (i: {
+    path: string
+    name: string
+  }) => {
+    if (i.path === "/chat") {
+      navigate(chatPath)
+    } else {
+      navigate(i.path)
+    }
+  }
 
   return (
     <div className={"h-full w-[70px] bg-[#e8eaf1] py-4 pt-6 dark:bg-[#25272d] hidden md:block"}>
       <div className={"flex flex-col justify-between h-full"}>
         <div className={"flex flex-col justify-center items-center space-y-4"}>
           {routesMap.map(i => <div key={i.path} className={"flex flex-col items-center justify-center"}>
-            <Link to={i.path}>
+            <div onClick={() => onClickLink(i)}>
               <div className={`flex flex-col items-center justify-center group h-12 w-12 shrink-0 
           cursor-pointer rounded-xl bg-white duration-300 dark:bg-[#34373c]`}>
                 <div className={cn("group-hover:scale-110 group-hover:text-[#eb2f96] dark:group-hover:text-[#ff8cc8]",
-                  pathname === i.path ? "text-[#eb2f96] dark:text-[#ff8cc8]" : "")}>
+                  url === i.path ? "text-[#eb2f96] dark:text-[#ff8cc8]" : "")}>
                   {i.icon}
                 </div>
               </div>
-            </Link>
-            <span className={"text-sm py-1"}>{i.name}</span>
+            </div>
+            <span className={cn("text-sm py-1",url === i.path ? "text-[#eb2f96] dark:text-[#ff8cc8]" : "")}>{i.name}</span>
           </div>)}
         </div>
         <div className={"flex flex-col justify-center items-center space-y-4"}>
