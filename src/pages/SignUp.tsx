@@ -39,7 +39,7 @@ const SignUp = () => {
   })
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    post("/user/create", {
+    post("/auth/sign-up", {
       username: values.username,
       password: values.password
     }).then(() => {

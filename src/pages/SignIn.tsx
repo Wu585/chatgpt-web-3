@@ -34,13 +34,14 @@ const SignIn = () => {
   })
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    post<Resource<any>>("/user/login", {
+    post<Resource<{
+      access_token: string
+    }>>("/auth/sign-in", {
       username: values.username,
       password: values.password
     }).then(res => {
-      const data = res.data.data[0]
-      setUser(data)
-      sessionStorage.setItem("userInfo", JSON.stringify(data))
+      console.log('res');
+      console.log(res.data.access_token);
       toast({
         description: "登录成功"
       })
