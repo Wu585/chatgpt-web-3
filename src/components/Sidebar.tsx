@@ -64,13 +64,14 @@ const Sidebar = () => {
                 </div>
               </div>
             </div>
-            <span className={cn("text-sm py-1",url === i.path ? "text-[#eb2f96] dark:text-[#ff8cc8]" : "")}>{i.name}</span>
+            <span
+              className={cn("text-sm py-1", url === i.path ? "text-[#eb2f96] dark:text-[#ff8cc8]" : "")}>{i.name}</span>
           </div>)}
         </div>
         <div className={"flex flex-col justify-center items-center space-y-4"}>
           <Announcement/>
           <ModeToggle/>
-          <UserAvatar/>
+          <UserAvatar onClick={() => navigate("userinfo")}/>
         </div>
       </div>
     </div>

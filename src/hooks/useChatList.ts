@@ -12,7 +12,7 @@ interface Chat {
 export const useChatList = () => {
   const {user} = useUserStore();
   const {get} = useAjax();
-  const key = user && user.id ? [`/api/sessionParentList/querySessionList`, user.id] : null;
+  const key = user && user.id ? [`/sessionParentList/querySessionList`, user.id] : null;
 
   return useSWR(key, async (path) => {
     if (!user) {

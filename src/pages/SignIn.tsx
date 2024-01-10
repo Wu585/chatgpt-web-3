@@ -8,7 +8,7 @@ import {Link, useNavigate} from "react-router-dom";
 import ModeToggle from "@/components/mode-toggle.tsx";
 import {useUserStore} from "@/store/userStore.ts";
 import {useToast} from "@/components/ui/use-toast.ts";
-import axios from "axios";
+import {useAjax} from "@/lib/ajax.ts";
 
 const formSchema = z.object({
   username: z.string().nonempty({
@@ -23,6 +23,7 @@ const SignIn = () => {
   const {setUser} = useUserStore()
   const {toast} = useToast()
   const navigate = useNavigate()
+  const {post} = useAjax()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -33,21 +34,23 @@ const SignIn = () => {
   })
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    const res = await axios({
-      method: "POST",
-      url: "api/user/login",
-      data: {
-        username: values.username,
-        password: values.password
-      }
+    post<Resource<any>>("/user/login", {
+      username: values.username,
+      password: values.password
+    }).then(res => {
+      const data = res.data.data[0]
+      setUser(data)
+      sessionStorage.setItem("userInfo", JSON.stringify(data))
+      toast({
+        description: "登录成功"
+      })
+      navigate("/home")
+    }).catch(() => {
+      toast({
+        description: "登录失败，请检查用户名及密码！",
+        variant: "destructive"
+      })
     })
-    const data = res.data.data[0]
-    setUser(data)
-    sessionStorage.setItem("userInfo", JSON.stringify(data))
-    toast({
-      description: "登录成功"
-    })
-    navigate("/home")
   }
 
   return (

@@ -4,13 +4,13 @@ import {useEffect, useState} from "react";
 import {useAjax} from "@/lib/ajax.ts";
 import {useUserStore} from "@/store/userStore.ts";
 import {useRoleStore} from "@/store/useRoleStore.tsx";
-import {useWebsocket} from "@/hooks/useWebsocket.ts";
 import {useMessagesStore} from "@/store/useMessagesStore.ts";
 import {useModelStore} from "@/store/useModelStore.tsx";
 import useSWR from "swr";
 import {useChatList} from "@/hooks/useChatList.ts";
+import {useWebSocketStore} from "@/store/useWebSocketStore.ts";
 
-interface Role {
+export interface Role {
   id: number
   iconUrl: string
   roleMessage: string
@@ -18,7 +18,7 @@ interface Role {
 }
 
 const Home = () => {
-  const {setRoleMessage, setRoleName} = useRoleStore()
+  const {setRoleMessage, setRoleName, setCurrentRole} = useRoleStore()
   const {setIsLoading} = useMessagesStore()
 
   /*const listmap = {
@@ -38,7 +38,7 @@ const Home = () => {
 
   const {get, post} = useAjax()
 
-  const {data: allRoles} = useSWR(`/api/role/queryAll`, async path => {
+  const {data: allRoles} = useSWR(`/role/queryAll`, async path => {
     const response = await get<Resource<{
       id: number
       roleName: string
@@ -47,7 +47,7 @@ const Home = () => {
     return response.data.data
   })
 
-  const {data: roleDescList} = useSWR(`/api/roleDesc/queryAll`, async path => {
+  const {data: roleDescList} = useSWR(`/roleDesc/queryAll`, async path => {
     const response = await get<Resource<{
       id: string
       image: string
@@ -71,16 +71,19 @@ const Home = () => {
 
   const navigate = useNavigate()
 
-  const {ws} = useWebsocket({isAudio: false})
+  // const {ws} = useWebsocket({})
+
+  const {ws} = useWebSocketStore()
 
   const onUseRole = async (item: Role) => {
     if (user) {
       setRoleMessage(item.roleMessage)
       setRoleName(item.roleName)
+      setCurrentRole(item)
 
       const res = await post<{
         msg: string
-      }>('/api/sessionParentList/create', {
+      }>('/sessionParentList/create', {
         name: item.roleName,
         userId: user?.id
       })
@@ -88,7 +91,7 @@ const Home = () => {
       await mutate()
       setIsLoading(true)
       ws?.send(JSON.stringify({
-        role: user?.id,
+        role: item.id,
         content: `${item.roleMessage}`,
         semantics: true,
         model,

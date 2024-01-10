@@ -13,6 +13,10 @@ interface MessagesStore {
   setIsLoading: (isLoading: boolean) => void
   resetMessages: () => void
   updateAllMessages: (messages: Message[]) => void
+  isAudio: boolean
+  setIsAudio: (isAudio: boolean) => void
+  currentMessage: Message
+  setCurrentMessage: (message: Message) => void
 }
 
 export const useMessagesStore = create<MessagesStore>((set) => ({
@@ -29,5 +33,16 @@ export const useMessagesStore = create<MessagesStore>((set) => ({
   })),
   updateAllMessages: (messages) => set(() => ({
     messages
+  })),
+  isAudio: false,
+  setIsAudio: (isAudio: boolean) => set(() => ({
+    isAudio
+  })),
+  currentMessage: {
+    content: "",
+    role: "assistant"
+  },
+  setCurrentMessage: (message) => set(() => ({
+    currentMessage: message
   }))
 }))

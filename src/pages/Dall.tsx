@@ -6,14 +6,15 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {Textarea} from "@/components/ui/textarea.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {useState} from "react";
-import axios from "axios";
 import {useUserStore} from "@/store/userStore.ts";
 import {useToast} from "@/components/ui/use-toast.ts";
 import {PulseLoader} from "react-spinners";
+import {useAjax} from "@/lib/ajax.ts";
 
 const Dall = () => {
   const {user} = useUserStore()
   const {toast} = useToast()
+  const {post} = useAjax()
   const form = useForm({
     defaultValues: {
       model: "dall-e-2",
@@ -35,23 +36,24 @@ const Dall = () => {
       return
     }
     setIsLoading(true)
-    axios({
-      url: "api/image/getImages",
-      method: "POST",
-      data: {
+
+    if (user) {
+      post<{
+        msg: string
+      }>("/image/getImages", {
         ...value,
         user: user?.username
-      }
-    }).then(res => {
-      setImgSrc(res.data.msg)
-    }).catch(() => {
-      toast({
-        description: "出错啦,请重新尝试",
-        variant: "destructive"
+      }).then(res => {
+        setImgSrc(res.data.msg)
+      }).catch(() => {
+        toast({
+          description: "出错啦,请重新尝试",
+          variant: "destructive"
+        })
+      }).finally(() => {
+        setIsLoading(false)
       })
-    }).finally(() => {
-      setIsLoading(false)
-    })
+    }
   }
 
   const modelValue = form.watch("model")

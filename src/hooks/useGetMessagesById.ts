@@ -6,7 +6,7 @@ export const useGetMessagesById = (chatId?: string) => {
   const {user} = useUserStore();
   const {get} = useAjax();
 
-  const key = chatId && user && user.id ? [`/api/userSessionMessage/getSessionsByUserIdAndChatId`, user.id, chatId] : null;
+  const key = chatId && user && user.id ? [`/userSessionMessage/getSessionsByUserIdAndChatId`, user.id, chatId] : null;
 
   return useSWR(key,
     async ([url, userId, chatId]) => {

@@ -2,7 +2,6 @@ import {Label} from "@/components/ui/label.tsx";
 import {Textarea} from "@/components/ui/textarea.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {useRolePlayWebsocket} from "@/hooks/useWebsocket.ts";
-import {useUserStore} from "@/store/userStore.ts";
 import {useModelStore} from "@/store/useModelStore.tsx";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group.tsx";
 import {useState} from "react";
@@ -10,7 +9,6 @@ import {useWriteMessageStore} from "@/store/useWriteMessageStore.ts";
 
 const Write = () => {
   const {ws} = useRolePlayWebsocket()
-  const {user} = useUserStore()
   const {model} = useModelStore()
   const {writeMessage} = useWriteMessageStore()
 
@@ -51,7 +49,6 @@ const Write = () => {
 
   const onGenerateContent = () => {
     ws?.send(JSON.stringify({
-      role: user?.id,
       content: prompt,
       semantics: true,
       model

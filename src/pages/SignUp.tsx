@@ -4,8 +4,10 @@ import {useForm} from "react-hook-form"
 import {Form, FormControl, FormField, FormItem, FormMessage} from "@/components/ui/form.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import {Button} from "@/components/ui/button.tsx";
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import ModeToggle from "@/components/mode-toggle.tsx";
+import {useAjax} from "@/lib/ajax.ts";
+import {useToast} from "@/components/ui/use-toast.ts";
 
 const formSchema = z.object({
   username: z.string().nonempty({
@@ -23,6 +25,10 @@ const formSchema = z.object({
 })
 
 const SignUp = () => {
+  const {toast} = useToast()
+  const {post} = useAjax()
+  const navigate = useNavigate()
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -33,7 +39,20 @@ const SignUp = () => {
   })
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values)
+    post("/user/create", {
+      username: values.username,
+      password: values.password
+    }).then(() => {
+      toast({
+        description: "注册成功，请登录!"
+      })
+      navigate("/sign-in")
+    }).catch(() => {
+      toast({
+        description: "注册失败",
+        variant: "destructive"
+      })
+    })
   }
 
   return (
@@ -75,7 +94,7 @@ const SignUp = () => {
                     <FormMessage/>
                   </FormItem>
                 )} control={form.control} name={"confirm-password"}/>
-                <Button type="submit" className={"w-full my-2 bg-secondary text-black dark:text-white"}>登录</Button>
+                <Button type="submit" className={"w-full my-2 bg-secondary text-black dark:text-white"}>注册</Button>
               </form>
             </Form>
           </main>

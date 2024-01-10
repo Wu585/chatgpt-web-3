@@ -7,24 +7,29 @@ import {
 } from "@/components/ui/alert-dialog"
 
 import {Mic} from "lucide-react";
-import {useWebsocket} from "@/hooks/useWebsocket.ts";
 import {useModelStore} from "@/store/useModelStore.tsx";
 import {useUserStore} from "@/store/userStore.ts";
 import {useToast} from "@/components/ui/use-toast.ts";
 import {useMessagesStore} from "@/store/useMessagesStore.ts";
+import {useWebSocketStore} from "@/store/useWebSocketStore.ts";
+import {useState} from "react";
+import {useRoleStore} from "@/store/useRoleStore.tsx";
 
 interface SpeechAudio {
   chatId?: string
 }
 
 export function SpeechAudio({chatId}: SpeechAudio) {
-  const {setMessages, setIsLoading} = useMessagesStore()
+  const {setMessages, setIsLoading, setIsAudio} = useMessagesStore()
 
   const recognition = new webkitSpeechRecognition();
-  const {ws} = useWebsocket({isAudio: true})
+  const {ws} = useWebSocketStore()
   const {model} = useModelStore()
   const {user} = useUserStore()
+  const {currentRole} = useRoleStore()
   const {toast} = useToast()
+
+  const [transcript, setTranscript] = useState("")
 
   const onRecordVoice = () => {
     // 设置语音识别的语言（根据需要修改）
@@ -32,6 +37,8 @@ export function SpeechAudio({chatId}: SpeechAudio) {
     recognition.start();
     // 设置为连续模式
     recognition.continuous = true;
+
+    setIsAudio(true)
 
     recognition.onresult = function (event: any) {
       if (!user) {
@@ -41,25 +48,37 @@ export function SpeechAudio({chatId}: SpeechAudio) {
         })
       }
       setIsLoading(true)
-      const transcript = event.results[0][0].transcript;
+
+      const trans = event.results[0][0].transcript
       console.log('识别到的文本:', transcript);
+      setTranscript(trans)
+
       setMessages({
         role: "user",
-        content: transcript
+        content: trans
       })
-      ws?.send(JSON.stringify({
-        role: user.id,
-        content: transcript,
-        semantics: true,
-        model,
-        chatId
-      }))
+
+      currentRole ?
+        ws?.send(JSON.stringify({
+          role: currentRole.id,
+          content: trans,
+          semantics: true,
+          model,
+          chatId
+        })) : ws?.send(JSON.stringify({
+          content: trans,
+          semantics: true,
+          model,
+          chatId
+        }))
     };
   }
 
   const onEnd = () => {
     console.log('结束录音')
     recognition.stop()
+    setTranscript("")
+    // setIsAudio(false)
   }
   return (
     <AlertDialog>

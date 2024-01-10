@@ -1,6 +1,7 @@
 import axios, {AxiosRequestConfig} from "axios";
 
 export const ajax = axios.create({
+  baseURL:"/Api",
   headers: {
     'Content-Type': 'application/json'
   },
