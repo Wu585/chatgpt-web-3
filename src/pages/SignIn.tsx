@@ -6,7 +6,6 @@ import {Input} from "@/components/ui/input.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {Link, useNavigate} from "react-router-dom";
 import ModeToggle from "@/components/mode-toggle.tsx";
-import {useUserStore} from "@/store/userStore.ts";
 import {useToast} from "@/components/ui/use-toast.ts";
 import {useAjax} from "@/lib/ajax.ts";
 
@@ -20,7 +19,6 @@ const formSchema = z.object({
 })
 
 const SignIn = () => {
-  const {setUser} = useUserStore()
   const {toast} = useToast()
   const navigate = useNavigate()
   const {post} = useAjax()
@@ -40,8 +38,7 @@ const SignIn = () => {
       username: values.username,
       password: values.password
     }).then(res => {
-      console.log('res');
-      console.log(res.data.access_token);
+      localStorage.setItem("access_token", res.data.data.access_token)
       toast({
         description: "登录成功"
       })

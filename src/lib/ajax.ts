@@ -1,11 +1,20 @@
 import axios, {AxiosRequestConfig} from "axios";
 
 export const ajax = axios.create({
-  baseURL:"/api",
+  baseURL: "/api",
   headers: {
     'Content-Type': 'application/json'
   },
   timeout: 10000
+})
+
+ajax.interceptors.request.use((config) => {
+  const access_token = localStorage.getItem("access_token") || ""
+  config.headers = config.headers || {}
+  if (access_token) {
+    config.headers.Authorization = `Bearer ${access_token}`
+  }
+  return config
 })
 
 export const useAjax = () => {
