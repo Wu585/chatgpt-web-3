@@ -51,7 +51,7 @@ function App() {
   useEffect(() => {
     if (user) {
       console.log("websocket创建了")
-      setWs(new WebSocket(`ws:221.130.54.58:8000/api/websocket/${user?.id}`))
+      setWs(new WebSocket(`ws:36.152.38.220:8000/api/websocket/${user?.id}`))
     }
     return () => {
       ws?.close()
