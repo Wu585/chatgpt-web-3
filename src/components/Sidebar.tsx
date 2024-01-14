@@ -11,7 +11,7 @@ const Sidebar = () => {
 
   const {data: chatList} = useChatList()
 
-  const chatPath = chatList && chatList.length > 0 ? `/chat/${chatList[0].parentMessageId}` : '/chat'
+  const chatPath = chatList && chatList.length > 0 ? `/chat/${chatList[0].id}` : '/chat'
 
   const routesMap = [
     {

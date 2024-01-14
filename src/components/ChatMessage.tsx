@@ -8,7 +8,7 @@ import UserAvatar from "@/components/UserAvatar.tsx";
 import {useToast} from "@/components/ui/use-toast.ts";
 
 export interface ChatMessageProps {
-  role: "assistant" | "user",
+  role: "assistant" | "user" | "system",
   content?: string
   isLoading?: boolean
   src?: string
@@ -51,7 +51,7 @@ const ChatMessage: FC<ChatMessageProps> = ({role, content, isLoading, imageMessa
       {role !== "user" && !isLoading && <Button onClick={onCopy}
                                                 className={"opacity-0 group-hover:opacity-100 transition"} size={"icon"}
                                                 variant={"ghost"}>
-        <Copy className={"h-4 w-4"}/>
+          <Copy className={"h-4 w-4"}/>
       </Button>}
     </div>
   );

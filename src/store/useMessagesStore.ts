@@ -2,8 +2,9 @@ import {create} from 'zustand'
 
 interface Message {
   content: string,
-  role: "assistant" | "user"
+  role: "assistant" | "user" | "system"
   imageMessageSrc?: string
+  id?: string
 }
 
 interface MessagesStore {

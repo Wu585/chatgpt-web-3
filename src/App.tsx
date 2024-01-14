@@ -28,13 +28,10 @@ function App() {
   const {setRoleMessage} = useRoleStore()
 
   useEffect(() => {
-    if (user && chatList && chatList.length === 0) {
+    if (chatList && chatList.length === 0) {
       console.log("初始化创建了会话")
-      post<{
-        msg: string
-      }>('/sessionParentList/create', {
-        name: "新对话",
-        userId: user.id
+      post('/chats', {
+        title: "新对话",
       }).then(async () => {
         await mutate()
       })
@@ -190,6 +187,14 @@ function App() {
     }
   }, [ws, isAudio])
 
+  /*useEffect(() => {
+    console.log("---")
+    const eventSource = new EventSource('/api/messages');
+    eventSource.onmessage = ({ data }) => {
+      console.log('New message', JSON.parse(data));
+    };
+  }, []);*/
+
   return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
       <HashRouter>
@@ -200,7 +205,7 @@ function App() {
             <Route path={""} element={<Navigate to={"home"}/>}/>
             <Route path={"home"} element={<Home/>}/>
             <Route path={"chat"}
-                   element={<Navigate to={chatList && chatList[0] ? `/chat/${chatList[0].parentMessageId}` : ""}/>}/>
+                   element={<Navigate to={chatList && chatList[0] ? `/chat/${chatList[0].id}` : ""}/>}/>
             <Route path={"chat/:chatId"} element={<Chat/>}/>
             <Route path={"dall"} element={<Dall/>}/>
             <Route path={"write"} element={<Write/>}/>

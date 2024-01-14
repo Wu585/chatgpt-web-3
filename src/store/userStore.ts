@@ -4,12 +4,12 @@ interface UserStore {
   user: {
     id: string
     username: string
-  } | null
+  } | undefined
   setUser: (user: UserStore["user"]) => void
 }
 
 export const useUserStore = create<UserStore>((set) => ({
-  user: null,
+  user: undefined,
   setUser: (user) => set(() => ({
     user
   }))

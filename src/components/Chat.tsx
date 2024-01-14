@@ -2,7 +2,6 @@ import ChatMessage from "@/components/ChatMessage.tsx";
 import FormInput from "@/components/FormInput.tsx";
 import {ChangeEvent, ChangeEventHandler, ElementRef, FormEvent, useEffect, useRef, useState} from "react";
 import {useMessagesStore} from "@/store/useMessagesStore.ts";
-import {useModelStore} from "@/store/useModelStore.tsx";
 import {Delete, Edit, Menu, MessageCircle} from "lucide-react";
 import {Progress} from "@/components/ui/progress.tsx";
 import {
@@ -13,27 +12,22 @@ import {
   AlertDialogTrigger
 } from "@/components/ui/alert-dialog.tsx";
 import {Input} from "@/components/ui/input.tsx";
-import {useUserStore} from "@/store/userStore.ts";
 import {cn} from "@/lib/utils.ts";
 import {useNavigate, useParams} from "react-router-dom";
 import {useAjax} from "@/lib/ajax.ts";
 import {useToast} from "@/components/ui/use-toast.ts";
 import {useGetMessagesById} from "@/hooks/useGetMessagesById.ts";
 import {useChatList} from "@/hooks/useChatList.ts";
-import {useWebSocketStore} from "@/store/useWebSocketStore.ts";
-import {useRoleStore} from "@/store/useRoleStore.tsx";
 import {Sheet, SheetContent, SheetTrigger} from "@/components/ui/sheet.tsx";
 
 export interface Message {
   content: string
-  role: "assistant" | "user"
+  role: "assistant" | "user" | "system"
 }
 
 export interface Chat {
-  name: string
-  userId: string
   id: string
-  parentMessageId: string
+  title: string
 }
 
 const Chat = () => {
@@ -46,10 +40,6 @@ const Chat = () => {
     currentMessage,
     setIsAudio
   } = useMessagesStore()
-  const {user} = useUserStore()
-  const {model} = useModelStore()
-  const {ws} = useWebSocketStore()
-  const {currentRole, setCurrentRole} = useRoleStore()
 
   const {toast} = useToast()
   const navigate = useNavigate()
@@ -69,7 +59,16 @@ const Chat = () => {
   }, [messages.length])
 
   // const {ws} = useWebsocket({chatId: urlParams.chatId})
+
+  const createEvent = (value: string, chatId?: string) => {
+    console.log('createEvent')
+    return new EventSource(`/api/messages/stream?role=user&content=${value}&model=gpt-3.5-turbo&chatId=${chatId}`)
+  }
+
+  const eventSourceRef = useRef<EventSource | null>(null);
+
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
+
     setIsLoading(true)
     setIsAudio(false)
     setMessages({
@@ -78,68 +77,73 @@ const Chat = () => {
     })
     e.preventDefault()
 
-    currentRole ?
-      ws?.send(JSON.stringify({
-        role: currentRole.id,
-        content: value,
-        semantics: true,
-        model,
-        chatId: urlParams.chatId
-      })) : ws?.send(JSON.stringify({
-        content: value,
-        semantics: true,
-        model,
-        chatId: urlParams.chatId
-      }))
+    // 如果已经存在eventSource，则先关闭它
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+    }
+
+    // 创建新的eventSource
+    eventSourceRef.current = createEvent(value, urlParams.chatId);
+
+    eventSourceRef.current.onmessage = (event) => {
+      const data = JSON.parse(event.data).data
+      console.log(data);
+      if (data === "END") {
+        eventSourceRef.current?.close()
+      }
+    }
+
     setValue('')
   }
 
-  const {post} = useAjax()
+  useEffect(() => {
+    // 在组件卸载时关闭eventSource
+    return () => {
+      if (eventSourceRef.current) {
+        console.log("close222")
+        eventSourceRef.current.close();
+      }
+    };
+  }, []);
+
+  const {post, patch, destroy} = useAjax()
 
   const {data: chatList, mutate} = useChatList()
 
   const [nameValue, setNameValue] = useState("")
 
-  const {data: currentMessages} = useGetMessagesById(urlParams.chatId)
+  const {data: currentMessages, mutate: mutateMessages} = useGetMessagesById(urlParams.chatId)
+
+  useEffect(() => {
+    if (!urlParams.chatId && chatList) {
+      navigate(`chat/${chatList[0].id}`)
+    }
+  }, [urlParams.chatId, chatList]);
 
   useEffect(() => {
     if (currentMessages) {
-      const x = currentMessages.map((item) => [{
-        role: "user",
-        content: item.question
-      }, {
-        role: "assistant",
-        content: item.answer,
-      }] as const)
-      updateAllMessages(x.flat())
+      updateAllMessages(currentMessages)
     }
   }, [currentMessages])
 
   useEffect(() => {
     // url有就找到；没有的话就是删除后选择列表剩下的第一个
     if (chatList) {
-      setCurrentChat(chatList.find(item => item.parentMessageId === urlParams.chatId) || chatList[0])
+      setCurrentChat(chatList.find(item => item.id === urlParams.chatId) || chatList[0])
     }
   }, [chatList, urlParams.chatId])
 
-  const onCreateChat = async (name = "新对话") => {
-    if (user) {
-      const res = await post<{
-        msg: string
-      }>('/sessionParentList/create', {
-        name: name,
-        userId: user?.id,
-      })
-      setCurrentRole(null)
-      navigate(`/chat/${res.data.msg}`)
-      await mutate()
-    }
+  const onCreateChat = async (title = "新对话") => {
+    const {data} = await post<Chat>('/chats', {title})
+    // setCurrentRole(null)
+    navigate(`/chat/${data.id}`)
+    await mutate()
   }
 
   const onSelectChat = async (chat: Chat) => {
-    setNameValue(chat.name)
+    setNameValue(chat.title)
     setCurrentChat(chat)
-    navigate(`/chat/${chat.parentMessageId}`)
+    navigate(`/chat/${chat.id}`)
   }
 
   const onChangeChatName: ChangeEventHandler<HTMLInputElement> = async (e) => {
@@ -151,11 +155,9 @@ const Chat = () => {
       return toast({description: "标题不能为空", variant: "destructive"})
     }
 
-    if (user && currentChat && urlParams.chatId) {
-      await post("/sessionParentList/update", {
-        name: nameValue,
-        userId: user?.id,
-        chatId: urlParams.chatId
+    if (currentChat && urlParams.chatId) {
+      await patch(`/chats/${urlParams.chatId}`, {
+        title: nameValue,
       })
       await mutate()
     }
@@ -168,10 +170,10 @@ const Chat = () => {
         variant: "destructive"
       })
     }
-    await post(`/sessionParentList/delete?chatId=${urlParams.chatId}`, {})
+    await destroy(`/chats/${urlParams.chatId}`)
     const latestChatList = await mutate()
     if (latestChatList) {
-      navigate(`/chat/${latestChatList[0].parentMessageId}`)
+      navigate(`/chat/${latestChatList[0].id}`)
     }
   }
 
@@ -188,12 +190,12 @@ const Chat = () => {
           {chatList?.map(chat => <div key={chat.id}
                                       onClick={() => onSelectChat(chat)}
                                       className={cn("flex border-[1px] justify-between py-2 rounded-md px-2 cursor-pointer border-gray-500",
-                                        chat.parentMessageId === urlParams.chatId ? "border-[#eb2f96] border-[1px]" : "")}>
+                                        chat.id === urlParams.chatId ? "border-[#eb2f96] border-[1px]" : "")}>
             <div className={"flex"}>
               <MessageCircle className={"w-4 mr-2"}/>
-              <span>{chat.name}</span>
+              <span>{chat.title}</span>
             </div>
-            {chat.parentMessageId === currentChat?.parentMessageId && <div className={"flex space-x-1"}>
+            {chat.id === currentChat?.id && <div className={"flex space-x-1"}>
                 <AlertDialog>
                     <AlertDialogTrigger>
                         <Edit className={"w-4"}/>
@@ -257,12 +259,12 @@ const Chat = () => {
                       {chatList?.map(chat => <div key={chat.id}
                                                   onClick={() => onSelectChat(chat)}
                                                   className={cn("flex border-[1px] justify-between py-2 rounded-md px-2 cursor-pointer border-gray-500",
-                                                    chat.parentMessageId === urlParams.chatId ? "border-[#eb2f96] border-[1px]" : "")}>
+                                                    chat.id === urlParams.chatId ? "border-[#eb2f96] border-[1px]" : "")}>
                         <div className={"flex"}>
                           <MessageCircle className={"w-4 mr-2"}/>
-                          <span>{chat.name}</span>
+                          <span>{chat.title}</span>
                         </div>
-                        {chat.parentMessageId === currentChat?.parentMessageId && <div className={"flex space-x-1"}>
+                        {chat.id === currentChat?.id && <div className={"flex space-x-1"}>
                             <AlertDialog>
                                 <AlertDialogTrigger>
                                     <Edit className={"w-4"}/>
@@ -309,7 +311,7 @@ const Chat = () => {
                 </SheetContent>
               </Sheet>
               <h2
-                className={"overflow-hidden text-ellipsis whitespace-nowrap text-base font-bold"}>{currentChat?.name}</h2>
+                className={"overflow-hidden text-ellipsis whitespace-nowrap text-base font-bold"}>{currentChat?.title}</h2>
             </div>
           </div>
         </header>
