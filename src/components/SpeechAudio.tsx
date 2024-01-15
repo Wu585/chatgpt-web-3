@@ -14,12 +14,15 @@ import {useMessagesStore} from "@/store/useMessagesStore.ts";
 import {useWebSocketStore} from "@/store/useWebSocketStore.ts";
 import {useState} from "react";
 import {useRoleStore} from "@/store/useRoleStore.tsx";
+import {useAjax} from "@/lib/ajax.ts";
 
 interface SpeechAudio {
   chatId?: string
 }
 
 export function SpeechAudio({chatId}: SpeechAudio) {
+  const {post} = useAjax()
+
   const {setMessages, setIsLoading, setIsAudio} = useMessagesStore()
 
   const recognition = new webkitSpeechRecognition();
@@ -80,10 +83,28 @@ export function SpeechAudio({chatId}: SpeechAudio) {
     setTranscript("")
     // setIsAudio(false)
   }
+
+  const onClickAudio = () => {
+    post("/audio", {}, {
+      responseType: "blob"
+    }).then(res => {
+      console.log(res);
+    const blob = new Blob(res)
+      console.log(blob);
+      const url = URL.createObjectURL(blob)
+      const audioElement = new Audio();
+      // 将Audio元素的src设置为临时的URL
+      audioElement.src = url
+      // 播放音频
+      audioElement.play();
+    })
+  }
+
   return (
     <AlertDialog>
       <AlertDialogTrigger>
         <Mic onClick={onRecordVoice} className={"h-8 w-12 px-1 cursor-pointer"}/>
+        <Mic onClick={onClickAudio} className={"h-8 w-12 px-1 cursor-pointer"}/>
       </AlertDialogTrigger>
       <AlertDialogContent className={"flex items-center justify-center flex-col w-64"}>
         <div className={"flex items-center justify-center"}>

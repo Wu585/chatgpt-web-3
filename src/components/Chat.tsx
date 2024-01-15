@@ -1,6 +1,6 @@
 import ChatMessage from "@/components/ChatMessage.tsx";
 import FormInput from "@/components/FormInput.tsx";
-import {ChangeEvent, ChangeEventHandler, ElementRef, FormEvent, useEffect, useRef, useState} from "react";
+import {ChangeEvent, ChangeEventHandler, ElementRef, useEffect, useRef, useState} from "react";
 import {useMessagesStore} from "@/store/useMessagesStore.ts";
 import {Delete, Edit, Menu, MessageCircle} from "lucide-react";
 import {Progress} from "@/components/ui/progress.tsx";
@@ -19,6 +19,7 @@ import {useToast} from "@/components/ui/use-toast.ts";
 import {useGetMessagesById} from "@/hooks/useGetMessagesById.ts";
 import {useChatList} from "@/hooks/useChatList.ts";
 import {Sheet, SheetContent, SheetTrigger} from "@/components/ui/sheet.tsx";
+import {fetchEventSource} from '@microsoft/fetch-event-source';
 
 export interface Message {
   content: string
@@ -38,7 +39,8 @@ const Chat = () => {
     setIsLoading,
     updateAllMessages,
     currentMessage,
-    setIsAudio
+    setIsAudio,
+    setCurrentMessage
   } = useMessagesStore()
 
   const {toast} = useToast()
@@ -53,6 +55,8 @@ const Chat = () => {
     setValue(e.target.value)
   }
 
+  const currentMessageRef = useRef("")
+
   const scrollRef = useRef<ElementRef<"div">>(null)
   useEffect(() => {
     scrollRef?.current?.scrollIntoView({behavior: "smooth"})
@@ -60,51 +64,52 @@ const Chat = () => {
 
   // const {ws} = useWebsocket({chatId: urlParams.chatId})
 
-  const createEvent = (value: string, chatId?: string) => {
-    console.log('createEvent')
-    return new EventSource(`/api/messages/stream?role=user&content=${value}&model=gpt-3.5-turbo&chatId=${chatId}`)
-  }
-
-  const eventSourceRef = useRef<EventSource | null>(null);
-
-  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
-
-    setIsLoading(true)
+  const onSubmit = () => {
     setIsAudio(false)
     setMessages({
       role: "user",
       content: value
     })
-    e.preventDefault()
 
-    // 如果已经存在eventSource，则先关闭它
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-    }
+    setIsLoading(true)
 
-    // 创建新的eventSource
-    eventSourceRef.current = createEvent(value, urlParams.chatId);
-
-    eventSourceRef.current.onmessage = (event) => {
-      const data = JSON.parse(event.data).data
-      console.log(data);
-      if (data === "END") {
-        eventSourceRef.current?.close()
+    fetchEventSource("/api/messages/sse", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+      },
+      body: JSON.stringify({
+        role: "user",
+        content: value,
+        model: "gpt-3.5-turbo",
+        chatId: urlParams.chatId!
+      }),
+      onmessage(msg) {
+        if (msg.data) {
+          setIsLoading(false)
+          const str = JSON.parse(msg.data).data
+          currentMessageRef.current += str
+          setCurrentMessage({
+            content: currentMessageRef.current,
+            role: "assistant"
+          })
+        }
+      },
+      onclose() {
+        console.log("close sse")
       }
-    }
-
-    setValue('')
+    }).then(async () => {
+      setValue('')
+      setIsLoading(false)
+      await mutateMessages()
+      currentMessageRef.current = ""
+      setCurrentMessage({
+        content: "",
+        role: "user"
+      })
+    })
   }
-
-  useEffect(() => {
-    // 在组件卸载时关闭eventSource
-    return () => {
-      if (eventSourceRef.current) {
-        console.log("close222")
-        eventSourceRef.current.close();
-      }
-    };
-  }, []);
 
   const {post, patch, destroy} = useAjax()
 
