@@ -85,11 +85,11 @@ export function SpeechAudio({chatId}: SpeechAudio) {
   }
 
   const onClickAudio = () => {
-    post("/audio", {}, {
+    post<Blob>("/audio", {}, {
       responseType: "blob"
     }).then(res => {
       console.log(res);
-    const blob = new Blob(res)
+    const blob = new Blob([res.data])
       console.log(blob);
       const url = URL.createObjectURL(blob)
       const audioElement = new Audio();

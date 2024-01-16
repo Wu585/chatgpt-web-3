@@ -18,6 +18,9 @@ ajax.interceptors.request.use((config) => {
 })
 
 ajax.interceptors.response.use((response) => {
+  if (response.data instanceof Blob) {
+    return response
+  }
   return response.data
 })
 

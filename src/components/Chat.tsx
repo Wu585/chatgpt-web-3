@@ -103,12 +103,33 @@ const Chat = () => {
       setValue('')
       setIsLoading(false)
       await mutateMessages()
+
+      post<Blob>("/audio", {
+        model: "tts-1",
+        voice: "alloy",
+        input: currentMessageRef.current
+      }, {
+        responseType: "blob"
+      }).then(async (res) => {
+        console.log(res);
+        const blob = new Blob([res])
+        const url = URL.createObjectURL(blob)
+        const audioElement = new Audio();
+        // 将Audio元素的src设置为临时的URL
+        audioElement.src = url
+        // 播放音频
+        await audioElement.play();
+        URL.revokeObjectURL(url)
+      })
+
       currentMessageRef.current = ""
       setCurrentMessage({
         content: "",
         role: "user"
       })
     })
+
+
   }
 
   const {post, patch, destroy} = useAjax()
