@@ -112,7 +112,7 @@ const Chat = () => {
         responseType: "blob"
       }).then(async (res) => {
         console.log(res);
-        const blob = new Blob([res])
+        const blob = new Blob([res.data])
         const url = URL.createObjectURL(blob)
         const audioElement = new Audio();
         // 将Audio元素的src设置为临时的URL
