@@ -1,4 +1,4 @@
-import {Home, MessageSquare, Image, Pen} from "lucide-react";
+import {Home, MessageSquare, Image, Pen, Video, Music} from "lucide-react";
 import UserAvatar from "@/components/UserAvatar.tsx";
 import ModeToggle from "@/components/mode-toggle.tsx";
 import {useLocation, useNavigate,} from "react-router-dom";
@@ -33,7 +33,17 @@ const Sidebar = () => {
       path: "/write",
       icon: <Pen/>,
       name: "写作"
-    }
+    },
+    {
+      path: "/video",
+      icon: <Video/>,
+      name: "视频"
+    },
+    {
+      path: "/music",
+      icon: <Music/>,
+      name: "音乐"
+    },
   ]
 
   const {pathname} = useLocation()

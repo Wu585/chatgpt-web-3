@@ -1,25 +1,21 @@
 import {Link, useNavigate} from "react-router-dom";
 import {Brush, MessageCircle, PenTool} from "lucide-react";
-import {useEffect, useState} from "react";
 import {useAjax} from "@/lib/ajax.ts";
-import {useUserStore} from "@/store/userStore.ts";
-import {useRoleStore} from "@/store/useRoleStore.tsx";
-import {useMessagesStore} from "@/store/useMessagesStore.ts";
-import {useModelStore} from "@/store/useModelStore.tsx";
-import useSWR from "swr";
-import {useChatList} from "@/hooks/useChatList.ts";
-import {useWebSocketStore} from "@/store/useWebSocketStore.ts";
+import {useRoleList} from "@/hooks/useRoleList.ts";
 
 export interface Role {
-  id: number
+  id: string
   iconUrl: string
-  roleMessage: string
-  roleName: string
+  title: string
+  remark: string
+}
+
+interface Chat {
+  id: string
+  title: string
 }
 
 const Home = () => {
-  const {setRoleMessage, setRoleName, setCurrentRole} = useRoleStore()
-  const {setIsLoading} = useMessagesStore()
 
   /*const listmap = {
     "全部": [],
@@ -30,75 +26,27 @@ const Home = () => {
     "法律服务": []
   }*/
 
-  const [roleList, setRoleList] = useState<Role[]>([])
+  const {post} = useAjax()
 
-  const {user} = useUserStore()
-  const {model} = useModelStore()
-  const {mutate} = useChatList()
-
-  const {get, post} = useAjax()
-
-  const {data: allRoles} = useSWR(`/role/queryAll`, async path => {
-    const response = await get<Resource<{
-      id: number
-      roleName: string
-      roleMessage: string
-    }[]>>(path)
-    return response.data.data
-  })
-
-  const {data: roleDescList} = useSWR(`/roleDesc/queryAll`, async path => {
-    const response = await get<Resource<{
-      id: string
-      image: string
-      roleId: number
-    }[]>>(path)
-    return response.data.data
-  })
-
-  useEffect(() => {
-    if (allRoles && roleDescList) {
-      const updatedRoleList = allRoles.map(role => {
-        const roleDesc = roleDescList.find(item => item.roleId === role.id)
-        return {
-          ...role,
-          iconUrl: roleDesc ? roleDesc.image : "",
-        }
-      })
-      setRoleList(updatedRoleList);
-    }
-  }, [allRoles, roleDescList])
+  const {data: roleList} = useRoleList()
 
   const navigate = useNavigate()
 
-  // const {ws} = useWebsocket({})
-
-  const {ws} = useWebSocketStore()
-
   const onUseRole = async (item: Role) => {
-    if (user) {
-      setRoleMessage(item.roleMessage)
-      setRoleName(item.roleName)
-      setCurrentRole(item)
+    const chat = await post<Chat>("/chats", {
+      title: item.title
+    })
+    console.log(chat.data);
+    const {id} = chat.data
 
-      const res = await post<{
-        msg: string
-      }>('/sessionParentList/create', {
-        name: item.roleName,
-        userId: user?.id
-      })
-      const chatId = res.data.msg
-      await mutate()
-      setIsLoading(true)
-      ws?.send(JSON.stringify({
-        role: item.id,
-        content: `${item.roleMessage}`,
-        semantics: true,
-        model,
-        chatId
-      }))
-      navigate(`/chat/${chatId}`)
-    }
+    await post("/messages/text", {
+      role: "system",
+      content: item.remark,
+      model: "gpt-3.5-turbo",
+      chatId: id
+    }).then(() => {
+      navigate(`/chat/${id}`)
+    })
   }
 
   return (
@@ -136,7 +84,7 @@ const Home = () => {
         </ScrollArea>
       </div>*/}
       <div className={"w-full grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 my-4"}>
-        {roleList.map((item) =>
+        {roleList?.map((item) =>
           <div
             key={item.id}
             className={"border-2 m-auto w-full rounded-md bg-white p-4 dark:bg-[#18181c] transition-transform transform hover:scale-105 ease-in"}>
@@ -147,10 +95,10 @@ const Home = () => {
               </div>
               <div className={"flex-row justify-between"}>
                 <h2
-                  className={"css-0 mb-2 line-clamp-1 break-all text-xl font-semibold tracking-wide"}>{item.roleName}</h2>
+                  className={"css-0 mb-2 line-clamp-1 break-all text-xl font-semibold tracking-wide"}>{item.title}</h2>
                 <div className={"min-h-[60px]"}>
                   <p className={"line-clamp-3 w-full break-all text-sm text-gray-400"}>
-                    {item.roleMessage}
+                    {item.remark}
                   </p>
                 </div>
               </div>

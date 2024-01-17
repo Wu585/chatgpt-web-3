@@ -17,6 +17,8 @@ import {useMessagesStore} from "@/store/useMessagesStore.ts";
 import {useRoleStore} from "@/store/useRoleStore.tsx";
 import {useAjax} from "@/lib/ajax.ts";
 import UserInfo from "@/pages/UserInfo.tsx";
+import Video from "@/pages/Video.tsx";
+import Music from "@/pages/Music.tsx";
 
 function App() {
   const {data: chatList, mutate} = useChatList()
@@ -210,6 +212,8 @@ function App() {
             <Route path={"dall"} element={<Dall/>}/>
             <Route path={"write"} element={<Write/>}/>
             <Route path={"userinfo"} element={<UserInfo/>}/>
+            <Route path={"video"} element={<Video/>}/>
+            <Route path={"music"} element={<Music/>}/>
           </Route>
           <Route path={"sign-in"} element={<SignIn/>}/>
           <Route path={"sign-up"} element={<SignUp/>}/>

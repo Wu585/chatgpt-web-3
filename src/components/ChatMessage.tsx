@@ -40,17 +40,18 @@ const ChatMessage: FC<ChatMessageProps> = ({role, content, isLoading, imageMessa
   return (
     <div className={cn(
       "group flex items-center gap-x-3 py-4 w-full",
-      role === "user" && "justify-end pl-12"
+      (role === "user" || role === "system") && "justify-end pl-12"
     )}>
-      {role !== "user" && <ChatBotAvatar/>}
+      {role === "assistant" && <ChatBotAvatar/>}
       <div className={"rounded-md px-4 py-2 max-2-sm text-sm bg-primary/10 whitespace-pre-line"}>
         {isLoading ? <BeatLoader size={5}/> : content}
         {imageMessageSrc && <img src={imageMessageSrc} className={"w-80 h-auto"} alt="" onLoad={onLoad}/>}
       </div>
-      {role === "user" && <UserAvatar/>}
-      {role !== "user" && !isLoading && <Button onClick={onCopy}
-                                                className={"opacity-0 group-hover:opacity-100 transition"} size={"icon"}
-                                                variant={"ghost"}>
+      {(role === "user" || role === "system") && <UserAvatar/>}
+      {role === "assistant" && !isLoading && <Button onClick={onCopy}
+                                                     className={"opacity-0 group-hover:opacity-100 transition"}
+                                                     size={"icon"}
+                                                     variant={"ghost"}>
           <Copy className={"h-4 w-4"}/>
       </Button>}
     </div>
