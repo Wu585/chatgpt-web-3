@@ -6,13 +6,13 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {Textarea} from "@/components/ui/textarea.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {useState} from "react";
-import {useUserStore} from "@/store/userStore.ts";
 import {useToast} from "@/components/ui/use-toast.ts";
 import {PulseLoader} from "react-spinners";
 import {useAjax} from "@/lib/ajax.ts";
+import {useHistoryImages} from "@/hooks/useHistoryImages.ts";
+import {Card} from "@/components/ui/card.tsx";
 
 const Dall = () => {
-  const {user} = useUserStore()
   const {toast} = useToast()
   const {post} = useAjax()
   const form = useForm({
@@ -29,6 +29,8 @@ const Dall = () => {
   const [imgSrc, setImgSrc] = useState("https://hh.feixue666.com/i/2023/12/04/656d655f79a20.jpg")
   const [isLoading, setIsLoading] = useState(false)
 
+  const {data: historyImages} = useHistoryImages()
+
   const onSubmit = () => {
     const value = form.getValues()
     if (!value.prompt) {
@@ -37,10 +39,26 @@ const Dall = () => {
     }
     setIsLoading(true)
 
-    if (user) {
+    console.log(value);
+
+    post<{ url: string }[]>("/images", {
+      ...value,
+      n: value.number
+    }).then(res => {
+      setImgSrc(res.data[0].url)
+    }).catch(() => {
+      toast({
+        description: "出错啦,请重新尝试",
+        variant: "destructive"
+      })
+    }).finally(() => {
+      setIsLoading(false)
+    })
+
+    /*if (user) {
       post<{
         msg: string
-      }>("/image/getImages", {
+      }>("/images", {
         ...value,
         user: user?.username
       }).then(res => {
@@ -53,10 +71,14 @@ const Dall = () => {
       }).finally(() => {
         setIsLoading(false)
       })
-    }
+    }*/
   }
 
   const modelValue = form.watch("model")
+
+  const getHistory = () => {
+    console.log(historyImages);
+  }
 
   return (
     <div className={"h-full overflow-auto p-4"}>
@@ -74,7 +96,7 @@ const Dall = () => {
                 <span>生成图片</span>
               </div>
             </TabsTrigger>
-            <TabsTrigger value="history">
+            <TabsTrigger value="history" onClick={() => getHistory()}>
               <div className={"flex justify-center items-center px-10"}>
                 <History/>
                 <span>历史记录</span>
@@ -177,13 +199,22 @@ const Dall = () => {
                 </form>
               </Form>
             </div>
-            <div className={"w-full md:w-2/3 border-2 h-[640px] flex items-center justify-center"}>
+            <div className={"w-full md:w-2/3 h-[640px] flex items-center justify-center"}>
               {isLoading ? <PulseLoader color="#36d7b7"/> :
                 <img className={"object-fill h-full"} src={imgSrc} alt="暂无图片"/>}
             </div>
           </div>
         </TabsContent>
-        <TabsContent value="history"></TabsContent>
+        <TabsContent value="history">
+          <div className={"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-8"}>
+            {
+              historyImages?.map(url =>
+                <Card key={url} className={"rounded-lg overflow-hidden"}>
+                  <img src={url} alt="暂无图片"/>
+                </Card>)
+            }
+          </div>
+        </TabsContent>
       </Tabs>
     </div>
   );
