@@ -73,7 +73,7 @@ const UserInfo = () => {
   }
 
   const onLogout = () => {
-    sessionStorage.removeItem("userInfo")
+    localStorage.removeItem("access_token")
     window.location.reload();
   }
 
@@ -95,7 +95,7 @@ const UserInfo = () => {
         toast({
           description: "密码修改成功！请重新登录"
         })
-        setUser(null)
+        // setUser(null)
         sessionStorage.removeItem("userInfo")
         setTimeout(() => {
           window.location.reload();
