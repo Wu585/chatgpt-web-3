@@ -9,10 +9,12 @@ const Music = () => {
   const {post} = useAjax()
 
   const onGenerate = () => {
-    post<string[]>("/music", {
+    post<{
+      audio: string
+    }>("/music", {
       prompt
     }).then(res => {
-      setMusic(res.data[0])
+      setMusic(res.data.audio)
     })
   }
 
