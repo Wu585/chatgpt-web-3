@@ -1,9 +1,9 @@
-import {Input} from "@/components/ui/input.tsx";
 import {SendHorizonal} from "lucide-react";
 import {Button} from "@/components/ui/button.tsx";
 import {ChangeEvent, FC, FormEvent} from "react";
 import {useModelStore} from "@/store/useModelStore.tsx";
 import {SpeechAudio} from "@/components/SpeechAudio.tsx";
+import NoBorderInput from "@/components/NoBorderInput.tsx";
 
 interface FormInputProps {
   input: string
@@ -27,7 +27,7 @@ const FormInput: FC<FormInputProps> = ({input, handleInputChange, onSubmit, isLo
         }</Button>
         <SpeechAudio chatId={chatId}/>
         {/*<Mic className={"h-8 w-12 px-1 cursor-pointer"}/>*/}
-        <Input value={input} onChange={handleInputChange} disabled={isLoading}
+        <NoBorderInput value={input} onChange={handleInputChange} disabled={isLoading}
                className={"h-full placeholder:text-primary flex-1 w-full"} placeholder={"您好，想问点什么?"}/>
         <Button className={"ml-2 cursor-pointer bg-black text-white h-full w-16"}>
           <SendHorizonal/>

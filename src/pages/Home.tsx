@@ -2,9 +2,9 @@ import {Link, useNavigate} from "react-router-dom";
 import {Brush, MessageCircle, PenTool, X} from "lucide-react";
 import {useAjax} from "@/lib/ajax.ts";
 import {useRoleList} from "@/hooks/useRoleList.ts";
-import {Input} from "@/components/ui/input.tsx";
 import {useState} from "react";
 import {useDebounce} from "@/hooks/useDebounce.ts";
+import NoBorderInput from "@/components/NoBorderInput.tsx";
 
 export interface Role {
   id: string
@@ -19,7 +19,6 @@ interface Chat {
 }
 
 const Home = () => {
-
   /*const listmap = {
     "全部": [],
     "创作": [],
@@ -28,9 +27,14 @@ const Home = () => {
     "学习辅导": [],
     "法律服务": []
   }*/
-  const [keyword, setKeyword] = useState("")
 
-  const debouncedKeyword = useDebounce(keyword)
+  const [searchParams, setSearchParams] = useState({
+    keyword: "",
+    page: 1,
+    perPage: 500
+  })
+
+  const debouncedKeyword = useDebounce(searchParams)
 
   const {post} = useAjax()
 
@@ -90,18 +94,23 @@ const Home = () => {
         </ScrollArea>
       </div>*/}
       <div className={"mt-3 relative"}>
-        <Input
+        <NoBorderInput
           placeholder={"输入要查询的角色"}
-          className={"border-0 outline-none focus-visible:ring-0 focus-visible:ring-transparent"}
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}/>
+          value={searchParams.keyword}
+          onChange={(e) => setSearchParams({
+            ...searchParams,
+            keyword: e.target.value
+          })}/>
         <X
           className={"absolute h-6 w-6  text-muted-foreground right-2 top-2 cursor-pointer"}
-          onClick={() => setKeyword("")}
+          onClick={() => setSearchParams({
+            ...searchParams,
+            keyword: ""
+          })}
         />
       </div>
       <div className={"w-full grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 my-4"}>
-        {roleList?.map((item) =>
+        {roleList?.actors?.map((item) =>
           <div
             key={item.id}
             className={"border-2 m-auto w-full rounded-md bg-white p-4 dark:bg-[#18181c] transition-transform transform hover:scale-105 ease-in"}>

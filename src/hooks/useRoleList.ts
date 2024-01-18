@@ -9,10 +9,17 @@ interface Role {
   remark: string
 }
 
-export const useRoleList = (keyword: string) => {
+export const useRoleList = (searchParam: {
+  keyword: string,
+  page: number,
+  perPage: number
+}) => {
   const {get} = useAjax();
 
-  return useSWR([`/actors`, keyword], async ([path, keyword]) => (await get<Role[]>(path, {
-    params: cleanObject({keyword})
+  return useSWR([`/actors`, searchParam], async ([path, searchParam]) => (await get<{
+    actors: Role[],
+    counts: number
+  }>(path, {
+    params: cleanObject(searchParam)
   })).data)
 }

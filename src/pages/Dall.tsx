@@ -189,7 +189,7 @@ const Dall = () => {
                     <FormControl>
                       <Textarea
                         placeholder="生成图片的描述词"
-                        className="resize-none"
+                        className="resize-none border-0 outline-none focus-visible:ring-0 focus-visible:ring-transparent"
                         {...field}
                       />
                     </FormControl>
