@@ -1,5 +1,5 @@
 import {Link, useNavigate} from "react-router-dom";
-import {Brush, MessageCircle, PenTool} from "lucide-react";
+import {Brush, MessageCircle, PenTool, X} from "lucide-react";
 import {useEffect, useState} from "react";
 import {useAjax} from "@/lib/ajax.ts";
 import {useUserStore} from "@/store/userStore.ts";
@@ -9,6 +9,8 @@ import {useModelStore} from "@/store/useModelStore.tsx";
 import useSWR from "swr";
 import {useChatList} from "@/hooks/useChatList.ts";
 import {useWebSocketStore} from "@/store/useWebSocketStore.ts";
+import {Input} from "@/components/ui/input.tsx";
+import {useDebounce} from "@/hooks/useDounce.ts";
 
 export interface Role {
   id: number
@@ -18,6 +20,10 @@ export interface Role {
 }
 
 const Home = () => {
+  const [keyword, setKeyword] = useState("")
+
+  const debouncedKeyword = useDebounce(keyword)
+
   const {setRoleMessage, setRoleName, setCurrentRole} = useRoleStore()
   const {setIsLoading} = useMessagesStore()
 
@@ -37,6 +43,20 @@ const Home = () => {
   const {mutate} = useChatList()
 
   const {get, post} = useAjax()
+
+  const {data: queryRoles} = useSWR(["/role/getByName", debouncedKeyword], async ([path]) => {
+    const response = await get<Resource<{
+      id: number
+      roleName: string
+      roleMessage: string
+    }[]>>(path, {
+      params: {
+        name: keyword
+      }
+    })
+    return response.data.data
+  })
+
 
   const {data: allRoles} = useSWR(`/role/queryAll`, async path => {
     const response = await get<Resource<{
@@ -68,6 +88,19 @@ const Home = () => {
       setRoleList(updatedRoleList);
     }
   }, [allRoles, roleDescList])
+
+  useEffect(() => {
+    if (queryRoles && roleDescList) {
+      const updatedRoleList = queryRoles.map(role => {
+        const roleDesc = roleDescList.find(item => item.roleId === role.id)
+        return {
+          ...role,
+          iconUrl: roleDesc ? roleDesc.image : "",
+        }
+      })
+      setRoleList(updatedRoleList);
+    }
+  }, [queryRoles, roleDescList])
 
   const navigate = useNavigate()
 
@@ -125,6 +158,19 @@ const Home = () => {
           </div>
         </Link>
       </div>
+
+      <div className={"mt-3 relative"}>
+        <Input
+          placeholder={"输入要查询的角色"}
+          className={"border-0 outline-none focus-visible:ring-0 focus-visible:ring-transparent"}
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}/>
+        <X
+          className={"absolute h-6 w-6  text-muted-foreground right-2 top-2 cursor-pointer"}
+          onClick={() => setKeyword("")}
+        />
+      </div>
+
       {/*<div className={"md:w-[1000px]"}>
         <ScrollArea className="whitespace-nowrap">
           <div
