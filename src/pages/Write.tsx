@@ -4,13 +4,16 @@ import {Button} from "@/components/ui/button.tsx";
 import {useRolePlayWebsocket} from "@/hooks/useWebsocket.ts";
 import {useModelStore} from "@/store/useModelStore.tsx";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group.tsx";
-import {useState} from "react";
+import {useRef, useState} from "react";
 import {useWriteMessageStore} from "@/store/useWriteMessageStore.ts";
+import {fetchEventSource} from "@microsoft/fetch-event-source";
 
 const Write = () => {
   const {ws} = useRolePlayWebsocket()
   const {model} = useModelStore()
-  const {writeMessage} = useWriteMessageStore()
+  const {writeMessage, setWriteMessage} = useWriteMessageStore()
+
+  const writeMessageRef = useRef("")
 
   const length = ["自动", "短", "中等", "长"]
   const style = ["自动", "电子邮件", "消息", "评论", "段落", "文章", "博客文章", "想法", "大纲"]
@@ -48,11 +51,29 @@ const Write = () => {
   const prompt = `\n\t现在你是一个写作文案专家，请根据我给出的要求和内容帮我生成写作内容。\n\t#要求：\n\t1、长度：${selectedValue.length}\n\t2、格式：${selectedValue.style}\n\t3、语气：${selectedValue.tone}\n\t4、语言：中文\n\t#内容：\n\t${writePrompt}\n\t`
 
   const onGenerateContent = () => {
-    ws?.send(JSON.stringify({
-      content: prompt,
-      semantics: true,
-      model
-    }))
+    fetchEventSource("/api/messages/normal-sse", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+      },
+      body: JSON.stringify({
+        messages: [
+          {role: "system", content: prompt}
+        ],
+        model
+      }),
+      onmessage(msg) {
+        if (msg.data) {
+          const str = JSON.parse(msg.data).data
+          writeMessageRef.current += str
+          setWriteMessage(writeMessageRef.current)
+        }
+      },
+      onclose() {
+        console.log("close sse")
+      }
+    })
   }
   return (
     <div className={"h-full overflow-auto"}>

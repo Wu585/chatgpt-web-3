@@ -20,6 +20,7 @@ import {useGetMessagesById} from "@/hooks/useGetMessagesById.ts";
 import {useChatList} from "@/hooks/useChatList.ts";
 import {Sheet, SheetContent, SheetTrigger} from "@/components/ui/sheet.tsx";
 import {fetchEventSource} from '@microsoft/fetch-event-source';
+import {useModelStore} from "@/store/useModelStore.tsx";
 
 export interface Message {
   content: string
@@ -42,6 +43,8 @@ const Chat = () => {
     setIsAudio,
     setCurrentMessage
   } = useMessagesStore()
+
+  const {model} = useModelStore()
 
   const {toast} = useToast()
   const navigate = useNavigate()
@@ -82,7 +85,7 @@ const Chat = () => {
       body: JSON.stringify({
         role: "user",
         content: value,
-        model: "gpt-3.5-turbo",
+        model,
         chatId: urlParams.chatId!
       }),
       onmessage(msg) {
