@@ -1,5 +1,6 @@
 import useSWR from "swr";
 import {useAjax} from "@/lib/ajax.ts";
+import {cleanObject} from "@/lib/cleanObject.ts";
 
 interface Role {
   id: string
@@ -8,8 +9,10 @@ interface Role {
   remark: string
 }
 
-export const useRoleList = () => {
+export const useRoleList = (keyword: string) => {
   const {get} = useAjax();
 
-  return useSWR("/actors", async (path) => (await get<Role[]>(path)).data)
+  return useSWR([`/actors`, keyword], async ([path, keyword]) => (await get<Role[]>(path, {
+    params: cleanObject({keyword})
+  })).data)
 }

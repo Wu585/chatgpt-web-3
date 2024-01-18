@@ -1,7 +1,10 @@
 import {Link, useNavigate} from "react-router-dom";
-import {Brush, MessageCircle, PenTool} from "lucide-react";
+import {Brush, MessageCircle, PenTool, X} from "lucide-react";
 import {useAjax} from "@/lib/ajax.ts";
 import {useRoleList} from "@/hooks/useRoleList.ts";
+import {Input} from "@/components/ui/input.tsx";
+import {useState} from "react";
+import {useDebounce} from "@/hooks/useDebounce.ts";
 
 export interface Role {
   id: string
@@ -25,10 +28,13 @@ const Home = () => {
     "学习辅导": [],
     "法律服务": []
   }*/
+  const [keyword, setKeyword] = useState("")
+
+  const debouncedKeyword = useDebounce(keyword)
 
   const {post} = useAjax()
 
-  const {data: roleList} = useRoleList()
+  const {data: roleList} = useRoleList(debouncedKeyword)
 
   const navigate = useNavigate()
 
@@ -83,6 +89,17 @@ const Home = () => {
           <ScrollBar orientation="horizontal"/>
         </ScrollArea>
       </div>*/}
+      <div className={"mt-3 relative"}>
+        <Input
+          placeholder={"输入要查询的角色"}
+          className={"border-0 outline-none focus-visible:ring-0 focus-visible:ring-transparent"}
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}/>
+        <X
+          className={"absolute h-6 w-6  text-muted-foreground right-2 top-2 cursor-pointer"}
+          onClick={() => setKeyword("")}
+        />
+      </div>
       <div className={"w-full grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 my-4"}>
         {roleList?.map((item) =>
           <div
