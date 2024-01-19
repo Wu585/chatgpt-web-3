@@ -46,10 +46,10 @@ const Home = () => {
     const chat = await post<Chat>("/chats", {
       title: item.title
     })
-    console.log(chat.data);
+
     const {id} = chat.data
 
-    await post("/messages/text", {
+    await post("/messages/normal-create", {
       role: "system",
       content: item.remark,
       model: "gpt-3.5-turbo",

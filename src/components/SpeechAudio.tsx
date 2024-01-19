@@ -85,7 +85,12 @@ export function SpeechAudio({chatId}: SpeechAudio) {
   }
 
   const onClickAudio = () => {
-    post<Blob>("/audio", {}, {
+    post("/alipay",{
+      orderId:"xxxx"
+    }).then((res) => {
+      console.log(res);
+    })
+    /*post<Blob>("/audio", {}, {
       responseType: "blob"
     }).then(res => {
       console.log(res);
@@ -97,7 +102,7 @@ export function SpeechAudio({chatId}: SpeechAudio) {
       audioElement.src = url
       // 播放音频
       audioElement.play();
-    })
+    })*/
   }
 
   return (

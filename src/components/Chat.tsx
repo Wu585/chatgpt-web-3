@@ -107,7 +107,7 @@ const Chat = () => {
       setIsLoading(false)
       await mutateMessages()
 
-      post<Blob>("/audio", {
+      /*post<Blob>("/audio", {
         model: "tts-1",
         voice: "alloy",
         input: currentMessageRef.current
@@ -123,7 +123,7 @@ const Chat = () => {
         // 播放音频
         await audioElement.play();
         URL.revokeObjectURL(url)
-      })
+      })*/
 
       currentMessageRef.current = ""
       setCurrentMessage({
