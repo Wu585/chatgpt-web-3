@@ -11,10 +11,14 @@ import {PulseLoader} from "react-spinners";
 import {useAjax} from "@/lib/ajax.ts";
 import {useHistoryImages} from "@/hooks/useHistoryImages.ts";
 import {Card} from "@/components/ui/card.tsx";
+import {useUser} from "@/hooks/useUser.ts";
 
 const Dall = () => {
   const {toast} = useToast()
   const {post} = useAjax()
+
+  const {data:userInfo} = useUser()
+
   const form = useForm({
     defaultValues: {
       model: "dall-e-2",
@@ -43,7 +47,8 @@ const Dall = () => {
 
     post<{ url: string }[]>("/images", {
       ...value,
-      n: value.number
+      n: value.number,
+      user: userInfo!.username
     }).then(res => {
       setImgSrc(res.data[0].url)
     }).catch(() => {
