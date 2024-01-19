@@ -1,7 +1,6 @@
 import {Label} from "@/components/ui/label.tsx";
 import {Textarea} from "@/components/ui/textarea.tsx";
 import {Button} from "@/components/ui/button.tsx";
-import {useRolePlayWebsocket} from "@/hooks/useWebsocket.ts";
 import {useModelStore} from "@/store/useModelStore.tsx";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group.tsx";
 import {useRef, useState} from "react";
@@ -9,7 +8,6 @@ import {useWriteMessageStore} from "@/store/useWriteMessageStore.ts";
 import {fetchEventSource} from "@microsoft/fetch-event-source";
 
 const Write = () => {
-  const {ws} = useRolePlayWebsocket()
   const {model} = useModelStore()
   const {writeMessage, setWriteMessage} = useWriteMessageStore()
 
