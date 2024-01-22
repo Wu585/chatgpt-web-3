@@ -327,7 +327,7 @@ const Chat = () => {
             <ChatMessage role={"assistant"} content={currentMessage.content}/> : null}
           <div ref={scrollRef}/>
         </main>
-        <footer>
+        <footer className={"mb-16 md:mb-0"}>
           <FormInput chatId={urlParams.chatId} input={value} handleInputChange={handleInputChange}
                      onSubmit={onSubmit} isLoading={false}/>
         </footer>
