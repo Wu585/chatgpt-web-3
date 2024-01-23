@@ -59,7 +59,7 @@ const Write = () => {
       <header className={"p-4"}>
         <h2 className={"text-2xl font-bold text-black dark:text-white"}>写作</h2>
       </header>
-      <main className={"grid h-full md:h-4/5 grid-cols-12 overflow-hidden rounded-md shadow-sm p-4"}>
+      <main className={"grid md:h-4/5 grid-cols-12 rounded-md shadow-sm p-4"}>
         <div className={"col-span-12 space-y-4 bg-[#fff] p-4 dark:bg-[#18181c] lg:col-span-5"}>
           <Label className={"text-md flex items-center space-x-2 font-bold"}>
             写作内容

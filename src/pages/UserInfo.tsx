@@ -5,10 +5,17 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {useUserStore} from "@/store/userStore.ts";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form.tsx";
 import {Input} from "@/components/ui/input.tsx";
-import {useEffect} from "react";
+import {useEffect, useRef, useState} from "react";
 import {Button} from "@/components/ui/button.tsx";
 import {useAjax} from "@/lib/ajax.ts";
 import {useToast} from "@/components/ui/use-toast.ts";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel, AlertDialogContent,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger
+} from "@/components/ui/alert-dialog.tsx";
 
 const formSchema = z.object({
   username: z.string().nonempty({
@@ -34,7 +41,7 @@ const changePasswordFormSchema = z.object({
 
 const UserInfo = () => {
   const {user, setUser} = useUserStore()
-  const {post} = useAjax()
+  const {post, get} = useAjax()
   const {toast} = useToast()
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -109,16 +116,38 @@ const UserInfo = () => {
     }
   }
 
+  const [payForm, setPayForm] = useState<string>("")
+
+  const formRef = useRef<any>(null)
+
+  const onUpgrade = () => {
+    get<{
+      body: string
+    }>("/alipay/pay", {
+      params: {
+        totalAmount: 0.01,
+        subject: "AI智能机器人"
+      }
+    }).then(res => {
+      setPayForm(res.data.body)
+    })
+  }
+
+  const onPay = () => {
+    formRef.current?.children[0].submit()
+  }
+
   return (
     <div className={"min-h-full p-8"}>
       <header className={"mb-4"}>
         <h1 className={"mb-2 text-2xl font-bold text-black dark:text-white"}>个人中心</h1>
       </header>
       <main>
-        <Tabs defaultValue="overview" className="w-[400px]">
-          <TabsList>
-            <TabsTrigger value="overview" className={"px-16"}>总览</TabsTrigger>
-            <TabsTrigger value="password" className={"px-16"}>密码</TabsTrigger>
+        <Tabs defaultValue="overview" className="w-full md:w-[400px]">
+          <TabsList className={"w-full"}>
+            <TabsTrigger value="overview" className={"w-1/3"}>总览</TabsTrigger>
+            <TabsTrigger value="vip" className={"w-1/3"}>会员</TabsTrigger>
+            <TabsTrigger value="password" className={"w-1/3"}>密码</TabsTrigger>
           </TabsList>
           <TabsContent value="overview" className={"pr-8"}>
             <Form {...form}>
@@ -175,6 +204,59 @@ const UserInfo = () => {
                 </div>
               </form>
             </Form>
+          </TabsContent>
+          <TabsContent value="vip" className={"pr-8 space-y-4"}>
+            <div className={"p-4 border-2 space-y-2"}>
+              <div className={"text-lg font-bold"}>我的权益</div>
+              <div>
+                <span>等级：</span>
+                <span>标准VIP</span>
+              </div>
+              <div>
+                <div>权益：</div>
+                <div className={"grid grid-cols-2 gap-x-2 gap-y-1"}>
+                  <span className={"border-2 text-muted-foreground text-center"}>基础对话模型</span>
+                  <span className={"border-2 text-muted-foreground text-center"}>角色扮演</span>
+                  <span className={"border-2 text-muted-foreground text-center"}>写作</span>
+                  <span className={"border-2 text-muted-foreground text-center"}>图片生成</span>
+                </div>
+              </div>
+            </div>
+            <div className={"p-4 border-2 space-y-2"}>
+              <div className={"text-lg font-bold"}>高级VIP</div>
+              <div>
+                <div>权益：</div>
+                <div className={"grid grid-cols-2 gap-x-2 gap-y-1"}>
+                  <span className={"border-2 text-muted-foreground text-center"}>基础对话模型</span>
+                  <span className={"border-2 text-muted-foreground text-center"}>角色扮演</span>
+                  <span className={"border-2 text-muted-foreground text-center"}>写作</span>
+                  <span className={"border-2 text-muted-foreground text-center"}>图片生成</span>
+                  <span className={"border-2 text-muted-foreground text-center"}>GPT 4.0</span>
+                  <span className={"border-2 text-muted-foreground text-center"}>无限制对话</span>
+                  <span className={"border-2 text-muted-foreground text-center"}>语音对话</span>
+                  <span className={"border-2 text-muted-foreground text-center"}>无限制图片生成</span>
+                </div>
+              </div>
+              <div className={"text-center"}>
+                <div ref={formRef} dangerouslySetInnerHTML={{__html: payForm}}/>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button onClick={onUpgrade} className={"text-lg font-bold text-red-600 border-2 bg-red-50"}>
+                      升级权益
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>确认付款升级权益？</AlertDialogTitle>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>取消</AlertDialogCancel>
+                      <AlertDialogAction onClick={onPay}>确认</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </main>
