@@ -17,7 +17,8 @@ export const useRolePlayWebsocket = () => {
 
   useEffect(() => {
     if (user) {
-      wsRef.current = new WebSocket(`ws:36.152.38.220:8000/api/websocket/${user.id}`);
+      // wsRef.current = new WebSocket(`ws:36.152.38.220:8000/api/websocket/${user.id}`);
+      wsRef.current = new WebSocket(`ws:localhost:8000/api/websocket/${user.id}`);
       // wsRef.current = new WebSocket(`ws:172.16.131.165:8000/api/websocket/${user.id}`);
       // wsRef.current = new WebSocket(`ws:localhost:9527`);
       const ws = wsRef.current;
@@ -70,7 +71,7 @@ export const useWebsocket1 = ({chatId}: { chatId?: string }) => {
   useEffect(() => {
     if (user) {
       console.log("ws重新生成了");
-      wsRef.current = new WebSocket(`ws:36.152.38.220:8000/api/websocket/${user.id}`);
+      wsRef.current = new WebSocket(`ws:localhost:8000/api/websocket/${user.id}`);
       // wsRef.current = new WebSocket(`ws:172.16.131.165:8000/api/websocket/${user.id}`);
       // wsRef.current = new WebSocket(`ws:localhost:9527`);
       const ws = wsRef.current;
@@ -154,7 +155,7 @@ export const useWebsocket = ({chatId}: { chatId?: string }) => {
   useEffect(() => {
     if (user) {
       console.log("ws重新生成了");
-      wsRef.current = new WebSocket(`ws:36.152.38.220:8000/api/websocket/${user.id}`);
+      wsRef.current = new WebSocket(`ws:localhost:8000/api/websocket/${user.id}`);
       // wsRef.current = new WebSocket(`ws:172.16.131.165:8000/api/websocket/${user.id}`);
       // wsRef.current = new WebSocket(`ws:localhost:9527`);
       const ws = wsRef.current;
